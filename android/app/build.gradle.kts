@@ -5,6 +5,9 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+
+
+
 android {
     namespace = "com.example.awesome"
     compileSdk = 36
