@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:developer' as dev;
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -20,9 +21,17 @@ class FirebaseMessagingService {
     // 1️⃣ Request permission (iOS + Android 13+)
     await _firebaseMessaging.requestPermission(alert: true, badge: true, sound: true);
     await _firebaseMessaging.setForegroundNotificationPresentationOptions(alert: true, badge: true, sound: true);
-
+    late String? token;
+    if (Platform.isIOS) {
+      token = await _firebaseMessaging.getAPNSToken();
+      if (token == null) {
+        await Future<void>.delayed(const Duration(seconds: 3));
+        token = await _firebaseMessaging.getAPNSToken();
+      }
+    } else {
+      token = await _firebaseMessaging.getToken();
+    }
     // 2️⃣ Get FCM token
-    final token = await _firebaseMessaging.getToken();
     dev.log("Token = $token");
 
     // 3️⃣ Foreground message handling

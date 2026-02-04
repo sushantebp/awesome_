@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:awesome/core/di/injection.dart';
 import 'package:awesome/core/services/local_notification_service.dart';
@@ -77,7 +79,12 @@ class _HomePageState extends State<HomePage> {
   // ─────────────────────────────────────────────────────────────
 
   Future<void> _showFcmToken() async {
-    final token = await FirebaseMessaging.instance.getToken();
+    late String? token;
+    if (Platform.isIOS) {
+      token = await FirebaseMessaging.instance.getAPNSToken();
+    } else if (Platform.isAndroid) {
+      token = await FirebaseMessaging.instance.getToken();
+    }
     if (!mounted) return;
 
     showDialog(
@@ -85,12 +92,7 @@ class _HomePageState extends State<HomePage> {
       builder: (_) => AlertDialog(
         title: const Text('FCM Token'),
         content: SelectableText(token ?? 'Token not available'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close'))],
       ),
     );
   }
@@ -112,10 +114,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _sectionTitle(String title) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
-    child: Text(
-      title,
-      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    ),
+    child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
   );
 
   // ─────────────────────────────────────────────────────────────
@@ -127,12 +126,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadPendingNotifications,
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadPendingNotifications)],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -143,38 +137,25 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   _sectionTitle('Local Notifications'),
 
-                  ElevatedButton(
-                    onPressed: _showInstantNotification,
-                    child: const Text('Show Instant Notification'),
-                  ),
+                  ElevatedButton(onPressed: _showInstantNotification, child: const Text('Show Instant Notification')),
                   const SizedBox(height: 12),
 
-                  ElevatedButton(
-                    onPressed: () => _scheduleNotification(5),
-                    child: const Text('Schedule in 5 seconds'),
-                  ),
+                  ElevatedButton(onPressed: () => _scheduleNotification(5), child: const Text('Schedule in 5 seconds')),
                   const SizedBox(height: 12),
 
                   ElevatedButton(
                     onPressed: _cancelAllNotifications,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                    ),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                     child: const Text('Cancel All Notifications'),
                   ),
 
                   const SizedBox(height: 32),
                   _sectionTitle('Push Notifications'),
 
-                  ElevatedButton(
-                    onPressed: _showFcmToken,
-                    child: const Text('Show FCM Token'),
-                  ),
+                  ElevatedButton(onPressed: _showFcmToken, child: const Text('Show FCM Token')),
 
                   const SizedBox(height: 32),
-                  _sectionTitle(
-                    'Pending Notifications (${_pendingNotifications.length})',
-                  ),
+                  _sectionTitle('Pending Notifications (${_pendingNotifications.length})'),
 
                   if (_pendingNotifications.isEmpty)
                     const Text('No pending notifications')
